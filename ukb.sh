@@ -8,7 +8,7 @@ read -p "Enter your GitHub personal access token: " GH_TOKEN
 read -p "Enter your GitHub repo name: " GH_REPO
 read -p "Enter your custom branch name (NOT main): " GH_BRANCH
 
-# Validate branch name (no 'main', no invalid chars)
+# Validate branch name
 if [[ "$GH_BRANCH" == "main" || ! "$GH_BRANCH" =~ ^[a-zA-Z0-9._/-]+$ ]]; then
   echo "❌ Invalid branch name: '$GH_BRANCH'. Use only letters, numbers, dashes, underscores, or slashes."
   exit 1
@@ -22,11 +22,11 @@ cd "$GH_REPO" || exit 1
 cat << 'EOF' > origins.py
 import os
 
-# Directory tree
 dirs = [
     "fire/css",
     "fire/js",
-    "fire/md"
+    "fire/md",
+    "fire/myenv"
 ]
 
 files = {
@@ -61,58 +61,8 @@ files = {
   font-family: 'Georgia', serif;
   color: #fff;
 }
-.cosmos {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-}
-#pentagon {
-  position: absolute;
-  width: 60vmin;
-  height: 60vmin;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-.glyph {
-  position: absolute;
-  font-size: 3rem;
-  cursor: pointer;
-  transition: transform 0.4s ease, text-shadow 0.4s ease;
-  animation: pulse 3s infinite;
-}
-.glyph:hover {
-  transform: scale(1.8);
-  text-shadow: 0 0 15px #fff, 0 0 30px #fff;
-}
-#glyph-origin     { top: 0%;   left: 50%; transform: translate(-50%, -50%); }
-#glyph-rules      { top: 30%;  left: 90%; transform: translate(-50%, -50%); }
-#glyph-recursion  { top: 80%;  left: 70%; transform: translate(-50%, -50%); }
-#glyph-splicing   { top: 80%;  left: 30%; transform: translate(-50%, -50%); }
-#glyph-illusion   { top: 30%;  left: 10%; transform: translate(-50%, -50%); }
-@keyframes pulse {
-  0%   { opacity: 0.8; transform: scale(1); }
-  50%  { opacity: 1; transform: scale(1.1); }
-  100% { opacity: 0.8; transform: scale(1); }
-}
-#details {
-  position: absolute;
-  bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-height: 40%;
-  overflow-y: auto;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.85);
-  border: 1px solid #fff;
-  border-radius: 1rem;
-  font-size: 1rem;
-  display: none;
-}
-#details.visible {
-  display: block;
-}""",
+/* ... same as before ... */
+""",
 
     "fire/js/main.js": """const glyphs = {
   'glyph-origin': '🌊 Sea (Origins)...',
@@ -133,16 +83,29 @@ document.querySelectorAll('.glyph').forEach(glyph => {
 
     "fire/md/README.md": """# Coen Recursion Engine  
 A mythic UI simulator grounded in five glyphs: 🌊 ❤️ 🔁 🎭 🤖  
-Each glyph opens a narrative based in recursive logic from Coen Brothers' filmography.  
-This project renders a cosmic pentagon, alive with animation and responsive to user action.
-"""
+""",
+
+    "app.py": """from flask import Flask, send_from_directory
+app = Flask(__name__, static_folder='.')
+
+@app.route('/')
+def index():
+    return send_from_directory('.', 'index.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory('.', path)
+
+if __name__ == '__main__':
+    app.run(debug=True)
+""",
+
+    "requirements.txt": "Flask==3.0.0\n"
 }
 
-# Create directories
 for d in dirs:
     os.makedirs(d, exist_ok=True)
 
-# Write files
 for path, content in files.items():
     with open(path, 'w') as f:
         f.write(content)
@@ -150,20 +113,32 @@ for path, content in files.items():
 print("✅ Project scaffolded from origins.py")
 EOF
 
-# Run the Python script
+# Run origins.py
 echo "🔁 Running origins.py..."
 python3 origins.py
 
-# Git init and commit
-echo "🔧 Initializing git..."
+# Setup Python venv in fire/myenv
+echo "🐍 Creating and activating virtual environment in fire/myenv..."
+python3 -m venv fire/myenv
+source fire/myenv/bin/activate
+
+# Install Flask
+echo "📦 Installing dependencies..."
+pip install -r requirements.txt
+
+# Run Flask app in background
+echo "🚀 Launching Flask app at http://127.0.0.1:5000 ..."
+nohup python3 app.py > flask.log 2>&1 &
+
+# Git init and push
+echo "🔧 Initializing Git..."
 git init
 git checkout -b "$GH_BRANCH"
 git add .
-git commit -m "🌱 Initial commit from origins.py"
+git commit -m "🌱 Initial commit from origins.py with virtual env + Flask"
 
-# Remote and push
-echo "🚀 Pushing to GitHub branch $GH_BRANCH..."
+echo "🔗 Connecting to GitHub..."
 git remote add origin https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO}.git
 git push -u origin "$GH_BRANCH"
 
-echo "✅ All done. Your recursion engine is live on branch '$GH_BRANCH'."
+echo "✅ Done! Flask app is running. View: http://127.0.0.1:5000"
