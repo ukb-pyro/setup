@@ -64,6 +64,12 @@ files = {
   font-family: 'Georgia', serif;
   color: #fff;
 }
+.hidden {
+  display: none;
+}
+.visible {
+  display: block;
+}
 /* ... add your CSS styling here ... */
 """,
 
@@ -74,15 +80,23 @@ files = {
   'glyph-splicing': '🎭 Theater (Splicing)...',
   'glyph-illusion': '🤖 Illusion (Broadcast)...'
 };
-document.querySelectorAll('.glyph').forEach(glyph => {
-  glyph.innerText = glyph.getAttribute('data-glyph');
-  glyph.addEventListener('click', () => {
-    const content = glyphs[glyph.id];
-    const details = document.getElementById('details');
-    details.innerHTML = content;
-    details.classList.add('visible');
+const details = document.getElementById('details');
+if (!details) {
+  console.error('Details element not found');
+} else {
+  document.querySelectorAll('.glyph').forEach(glyph => {
+    const glyphId = glyph.id;
+    if (!glyphs[glyphId]) {
+      console.warn(`No content defined for glyph ID: ${glyphId}`);
+      return;
+    }
+    glyph.innerText = glyph.getAttribute('data-glyph') || '';
+    glyph.addEventListener('click', () => {
+      details.innerHTML = glyphs[glyphId];
+      details.classList.add('visible');
+    });
   });
-});
+}
 """,
 
     "md/README.md": """# Coen Recursion Engine  
@@ -131,14 +145,15 @@ echo "📦 Installing dependencies..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# --- Run Flask app in background ---
-echo "🚀ევ Launching Flask app at http://0.0.0.0:5000 ..."
+# --- Ensure Flask runs from project root ---
+echo "🚀 Launching Flask app at http://0.0.0.0:5000 ..."
+cd "$(pwd)"  # Explicitly set working directory to project root
 nohup python3 app.py > flask.log 2>&1 &
 
 # --- Initialize Git, commit, push ---
 echo "🔧 Initializing Git repository..."
 git init
-git checkout -b "$GH_BRANCH"
+git checkout -b "$GH WFBRANCH"
 git add .
 git commit -m "🌱 Initial commit from origins.py with virtualenv + Flask app"
 
