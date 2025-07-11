@@ -1,62 +1,59 @@
 #!/bin/bash
-# setup.sh - Ukubona Recursive Setup Engine (top-down)
-
-set -e  # exit on any error
 
 echo "🌐 Ukubona Recursive Setup Engine"
 
-# --- Prompt for GitHub details ---
+# Prompt for GitHub credentials
 read -p "Enter your GitHub username: " GH_USER
-read -p "Enter your GitHub personal access token: " GH_TOKEN
+read -p "Enter your GitHub personal access token: " GH_TOKEN          
 read -p "Enter your GitHub repo name: " GH_REPO
 read -p "Enter your custom branch name (NOT main): " GH_BRANCH
 
 # Validate branch name
 if [[ "$GH_BRANCH" == "main" || ! "$GH_BRANCH" =~ ^[a-zA-Z0-9._/-]+$ ]]; then
-  echo "❌ Invalid branch name: '$GH_BRANCH'. Use only letters, numbers, dashes, underscores, or slashes, and not 'main'."
+  echo "❌ Invalid branch name: '$GH_BRANCH'. Use only letters, numbers, dashes, underscores, or slashes."
   exit 1
 fi
 
-# --- Create project folder ---
+# Create repo directory and cd in
 mkdir -p "$GH_REPO"
-cd "$GH_REPO"
+cd "$GH_REPO" || exit 1
 
-# --- Scaffold project files via origins.py ---
+# Write origins.py
 cat << 'EOF' > origins.py
-import os
+import os     
 
 dirs = [
-    "static/css",
-    "static/js",
-    "md",
-    "templates"
+    "fire/css",
+    "fire/js",
+    "fire/md",
+    "fire/myenv"
 ]
 
 files = {
-    "templates/index.html": """<!DOCTYPE html>
-<html lang="en">
+    "index.html": """<!DOCTYPE html>
+<html lang='en'>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset='UTF-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1.0' />
   <title>Coen Recursion Engine</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel='stylesheet' href='fire/css/main.css' />
 </head>
 <body>
-  <div class="cosmos">
-    <div id="pentagon">
-      <div class="glyph" id="glyph-origin" data-glyph="🌊"></div>
-      <div class="glyph" id="glyph-rules" data-glyph="❤️"></div>
-      <div class="glyph" id="glyph-recursion" data-glyph="🔁"></div>
-      <div class="glyph" id="glyph-splicing" data-glyph="🎭"></div>
-      <div class="glyph" id="glyph-illusion" data-glyph="🤖"></div>
+  <div class='cosmos'>
+    <div id='pentagon'>
+      <div class='glyph' id='glyph-origin' data-glyph='🌊'></div>
+      <div class='glyph' id='glyph-rules' data-glyph='❤️'></div>
+      <div class='glyph' id='glyph-recursion' data-glyph='🔁'></div>
+      <div class='glyph' id='glyph-splicing' data-glyph='🎭'></div>
+      <div class='glyph' id='glyph-illusion' data-glyph='🤖'></div>
     </div>
-    <div id="details" class="hidden"></div>
+    <div id='details' class='hidden'></div>
   </div>
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src='fire/js/main.js'></script>
 </body>
 </html>""",
 
-    "static/css/main.css": """body {
+    "fire/css/main.css": """body {
   margin: 0;
   padding: 0;
   background: radial-gradient(#000010, #000000);
@@ -64,60 +61,46 @@ files = {
   font-family: 'Georgia', serif;
   color: #fff;
 }
-.hidden {
-  display: none;
-}
-.visible {
-  display: block;
-}
-/* ... add your CSS styling here ... */
+/* ... same as before ... */
 """,
 
-    "static/js/main.js": """const glyphs = {
+    "fire/js/main.js": """const glyphs = {
   'glyph-origin': '🌊 Sea (Origins)...',
   'glyph-rules': '❤️ Love (Rules)...',
   'glyph-recursion': '🔁 Recursion (Games)...',
   'glyph-splicing': '🎭 Theater (Splicing)...',
   'glyph-illusion': '🤖 Illusion (Broadcast)...'
 };
-const details = document.getElementById('details');
-if (!details) {
-  console.error('Details element not found');
-} else {
-  document.querySelectorAll('.glyph').forEach(glyph => {
-    const glyphId = glyph.id;
-    if (!glyphs[glyphId]) {
-      console.warn(`No content defined for glyph ID: ${glyphId}`);
-      return;
-    }
-    glyph.innerText = glyph.getAttribute('data-glyph') || '';
-    glyph.addEventListener('click', () => {
-      details.innerHTML = glyphs[glyphId];
-      details.classList.add('visible');
-    });
+document.querySelectorAll('.glyph').forEach(glyph => {
+  glyph.innerText = glyph.getAttribute('data-glyph');
+  glyph.addEventListener('click', () => {
+    const content = glyphs[glyph.id];
+    const details = document.getElementById('details');
+    details.innerHTML = content;
+    details.classList.add('visible');
   });
-}
-""",
+});""",
 
-    "md/README.md": """# Coen Recursion Engine  
+    "fire/md/README.md": """# Coen Recursion Engine  
 A mythic UI simulator grounded in five glyphs: 🌊 ❤️ 🔁 🎭 🤖  
 """,
 
-    "app.py": """from flask import Flask, render_template
-
-app = Flask(__name__)
+    "app.py": """from flask import Flask, send_from_directory
+app = Flask(__name__, static_folder='.')
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return send_from_directory('.', 'index.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory('.', path)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True)
 """,
 
-    "requirements.txt": """Flask==3.0.0
-Jinja2==3.1.4
-"""
+    "requirements.txt": "Flask==3.0.0\n"
 }
 
 for d in dirs:
@@ -130,38 +113,32 @@ for path, content in files.items():
 print("✅ Project scaffolded from origins.py")
 EOF
 
-echo "🔁 Running origins.py to scaffold project files..."
+# Run origins.py
+echo "🔁 Running origins.py..."
 python3 origins.py
 
-# --- Setup Python virtual environment ---
-echo "🐍 Creating virtual environment in venv..."
-python3 -m venv venv
+# Setup Python venv in fire/myenv
+echo "🐍 Creating and activating virtual environment in fire/myenv..."
+python3 -m venv fire/myenv
+source fire/myenv/bin/activate
 
-echo "🔄 Activating virtual environment..."
-source venv/bin/activate
-
-# --- Install dependencies ---
+# Install Flask
 echo "📦 Installing dependencies..."
-pip install --upgrade pip
 pip install -r requirements.txt
 
-# --- Ensure Flask runs from project root ---
-echo "🚀 Launching Flask app at http://0.0.0.0:5000 ..."
-cd "$(pwd)"  # Explicitly set working directory to project root
+# Run Flask app in background
+echo "🚀 Launching Flask app at http://127.0.0.1:5000 ..."
 nohup python3 app.py > flask.log 2>&1 &
 
-# --- Initialize Git, commit, push ---
-echo "🔧 Initializing Git repository..."
+# Git init and push
+echo "🔧 Initializing Git..."
 git init
-git checkout -b "$GH WFBRANCH"
+git checkout -b "$GH_BRANCH"
 git add .
-git commit -m "🌱 Initial commit from origins.py with virtualenv + Flask app"
+git commit -m "🌱 Initial commit from origins.py with virtual env + Flask"
 
-echo "🔗 Adding GitHub remote..."
+echo "🔗 Connecting to GitHub..."
 git remote add origin https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO}.git
-
-echo "⬆️ Pushing to GitHub branch $GH_BRANCH ..."
 git push -u origin "$GH_BRANCH"
 
-echo "✅ Setup complete!"
-echo "👉 Flask app running: http://0.0.0.0:5000"
+echo "✅ Done! Flask app is running. View: http://127.0.0.1:5000"
