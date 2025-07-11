@@ -26,37 +26,37 @@ cat << 'EOF' > origins.py
 import os
 
 dirs = [
-    "fire/static/css",
-    "fire/static/js",
-    "fire/md",
+    "static/css",
+    "static/js",
+    "md",
     "templates"
 ]
 
 files = {
-    "templates/index.jinja2": """<!DOCTYPE html>
-<html lang='en'>
+    "templates/index.html": """<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset='UTF-8' />
-  <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Coen Recursion Engine</title>
-  <link rel='stylesheet' href='{{ url_for("static", filename="css/main.css") }}' />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
-  <div class='cosmos'>
-    <div id='pentagon'>
-      <div class='glyph' id='glyph-origin' data-glyph='🌊'></div>
-      <div class='glyph' id='glyph-rules' data-glyph='❤️'></div>
-      <div class='glyph' id='glyph-recursion' data-glyph='🔁'></div>
-      <div class='glyph' id='glyph-splicing' data-glyph='🎭'></div>
-      <div class='glyph' id='glyph-illusion' data-glyph='🤖'></div>
+  <div class="cosmos">
+    <div id="pentagon">
+      <div class="glyph" id="glyph-origin" data-glyph="🌊"></div>
+      <div class="glyph" id="glyph-rules" data-glyph="❤️"></div>
+      <div class="glyph" id="glyph-recursion" data-glyph="🔁"></div>
+      <div class="glyph" id="glyph-splicing" data-glyph="🎭"></div>
+      <div class="glyph" id="glyph-illusion" data-glyph="🤖"></div>
     </div>
-    <div id='details' class='hidden'></div>
+    <div id="details" class="hidden"></div>
   </div>
-  <script src='{{ url_for("static", filename="js/main.js") }}'></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>""",
 
-    "fire/static/css/main.css": """body {
+    "static/css/main.css": """body {
   margin: 0;
   padding: 0;
   background: radial-gradient(#000010, #000000);
@@ -67,7 +67,7 @@ files = {
 /* ... add your CSS styling here ... */
 """,
 
-    "fire/static/js/main.js": """const glyphs = {
+    "static/js/main.js": """const glyphs = {
   'glyph-origin': '🌊 Sea (Origins)...',
   'glyph-rules': '❤️ Love (Rules)...',
   'glyph-recursion': '🔁 Recursion (Games)...',
@@ -85,23 +85,25 @@ document.querySelectorAll('.glyph').forEach(glyph => {
 });
 """,
 
-    "fire/md/README.md": """# Coen Recursion Engine  
+    "md/README.md": """# Coen Recursion Engine  
 A mythic UI simulator grounded in five glyphs: 🌊 ❤️ 🔁 🎭 🤖  
 """,
 
     "app.py": """from flask import Flask, render_template
 
-app = Flask(__name__, static_folder='fire/static', template_folder='templates')
+app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template('index.jinja2')
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
 """,
 
-    "requirements.txt": "Flask==3.0.0\n"
+    "requirements.txt": """Flask==3.0.0
+Jinja2==3.1.4
+"""
 }
 
 for d in dirs:
@@ -117,12 +119,12 @@ EOF
 echo "🔁 Running origins.py to scaffold project files..."
 python3 origins.py
 
-# --- Setup python virtual environment ---
-echo "🐍 Creating virtual environment in fire/myenv..."
-python3 -m venv fire/myenv
+# --- Setup Python virtual environment ---
+echo "🐍 Creating virtual environment in venv..."
+python3 -m venv venv
 
 echo "🔄 Activating virtual environment..."
-source fire/myenv/bin/activate
+source venv/bin/activate
 
 # --- Install dependencies ---
 echo "📦 Installing dependencies..."
@@ -130,7 +132,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # --- Run Flask app in background ---
-echo "🚀 Launching Flask app at http://0.0.0.0:5000 ..."
+echo "🚀ევ Launching Flask app at http://0.0.0.0:5000 ..."
 nohup python3 app.py > flask.log 2>&1 &
 
 # --- Initialize Git, commit, push ---
@@ -148,4 +150,3 @@ git push -u origin "$GH_BRANCH"
 
 echo "✅ Setup complete!"
 echo "👉 Flask app running: http://0.0.0.0:5000"
-        
