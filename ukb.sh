@@ -1,40 +1,45 @@
 #!/bin/bash
+# setup.sh - Ukubona Recursive Setup Engine (top-down)
 
-# ukb.sh - Ukubona Recursive Setup Engine
+set -e  # exit on any error
 
 echo "🌐 Ukubona Recursive Setup Engine"
 
+# --- Prompt for GitHub details ---
 read -p "Enter your GitHub username: " GH_USER
 read -p "Enter your GitHub personal access token: " GH_TOKEN
 read -p "Enter your GitHub repo name: " GH_REPO
 read -p "Enter your custom branch name (NOT main): " GH_BRANCH
 
+# Validate branch name
 if [[ "$GH_BRANCH" == "main" || ! "$GH_BRANCH" =~ ^[a-zA-Z0-9._/-]+$ ]]; then
-  echo "❌ Invalid branch name: '$GH_BRANCH'. Use only letters, numbers, dashes, underscores, or slashes."
+  echo "❌ Invalid branch name: '$GH_BRANCH'. Use only letters, numbers, dashes, underscores, or slashes, and not 'main'."
   exit 1
 fi
 
+# --- Create project folder ---
 mkdir -p "$GH_REPO"
-cd "$GH_REPO" || exit 1
+cd "$GH_REPO"
 
+# --- Scaffold project files via origins.py ---
 cat << 'EOF' > origins.py
-import os     
+import os
 
 dirs = [
     "fire/static/css",
     "fire/static/js",
     "fire/md",
-    "fire/myenv"
+    "templates"
 ]
 
 files = {
-    "index.html": """<!DOCTYPE html>
+    "templates/index.jinja2": """<!DOCTYPE html>
 <html lang='en'>
 <head>
   <meta charset='UTF-8' />
   <meta name='viewport' content='width=device-width, initial-scale=1.0' />
   <title>Coen Recursion Engine</title>
-  <link rel='stylesheet' href='/fire/static/css/main.css' />
+  <link rel='stylesheet' href='{{ url_for("static", filename="css/main.css") }}' />
 </head>
 <body>
   <div class='cosmos'>
@@ -47,7 +52,7 @@ files = {
     </div>
     <div id='details' class='hidden'></div>
   </div>
-  <script src='/fire/static/js/main.js'></script>
+  <script src='{{ url_for("static", filename="js/main.js") }}'></script>
 </body>
 </html>""",
 
@@ -59,7 +64,7 @@ files = {
   font-family: 'Georgia', serif;
   color: #fff;
 }
-/* ... same as before ... */
+/* ... add your CSS styling here ... */
 """,
 
     "fire/static/js/main.js": """const glyphs = {
@@ -77,23 +82,20 @@ document.querySelectorAll('.glyph').forEach(glyph => {
     details.innerHTML = content;
     details.classList.add('visible');
   });
-});""",
+});
+""",
 
     "fire/md/README.md": """# Coen Recursion Engine  
 A mythic UI simulator grounded in five glyphs: 🌊 ❤️ 🔁 🎭 🤖  
 """,
 
-    "app.py": """from flask import Flask, send_from_directory
+    "app.py": """from flask import Flask, render_template
 
-app = Flask(__name__, static_folder='fire/static')
+app = Flask(__name__, static_folder='fire/static', template_folder='templates')
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')
-
-@app.route('/fire/static/<path:filename>')
-def static_files(filename):
-    return send_from_directory('fire/static', filename)
+    return render_template('index.jinja2')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
@@ -112,27 +114,37 @@ for path, content in files.items():
 print("✅ Project scaffolded from origins.py")
 EOF
 
-echo "🔁 Running origins.py..."
+echo "🔁 Running origins.py to scaffold project files..."
 python3 origins.py
 
+# --- Setup python virtual environment ---
 echo "🐍 Creating virtual environment in fire/myenv..."
 python3 -m venv fire/myenv
+
+echo "🔄 Activating virtual environment..."
 source fire/myenv/bin/activate
 
+# --- Install dependencies ---
 echo "📦 Installing dependencies..."
+pip install --upgrade pip
 pip install -r requirements.txt
 
+# --- Run Flask app in background ---
 echo "🚀 Launching Flask app at http://0.0.0.0:5000 ..."
 nohup python3 app.py > flask.log 2>&1 &
 
-echo "🔧 Initializing Git..."
+# --- Initialize Git, commit, push ---
+echo "🔧 Initializing Git repository..."
 git init
-git checkout -b "$GH_BRANCH" || { echo "❌ Failed to create branch"; exit 1; }
+git checkout -b "$GH_BRANCH"
 git add .
-git commit -m "🌱 Initial commit from origins.py with virtual env + Flask" || { echo "❌ Git commit failed"; exit 1; }
+git commit -m "🌱 Initial commit from origins.py with virtualenv + Flask app"
 
-echo "🔗 Connecting to GitHub..."
+echo "🔗 Adding GitHub remote..."
 git remote add origin https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO}.git
-git push -u origin "$GH_BRANCH" || { echo "❌ Git push failed"; exit 1; }
 
-echo "✅ Done! Flask app is running. View: http://0.0.0.0:5000"
+echo "⬆️ Pushing to GitHub branch $GH_BRANCH ..."
+git push -u origin "$GH_BRANCH"
+
+echo "✅ Setup complete!"
+echo "👉 Flask app running: http://0.0.0.0:5000"
