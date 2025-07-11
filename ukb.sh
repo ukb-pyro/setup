@@ -4,7 +4,7 @@ echo "🌐 Ukubona Recursive Setup Engine"
 
 # Prompt for GitHub credentials
 read -p "Enter your GitHub username: " GH_USER
-read -p "Enter your GitHub personal access token: " GH_TOKEN
+read -p "Enter your GitHub personal access token: " GH_TOKEN    
 read -p "Enter your GitHub repo name: " GH_REPO
 read -p "Enter your custom branch name (NOT main): " GH_BRANCH
 
