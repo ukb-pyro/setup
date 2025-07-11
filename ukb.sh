@@ -8,17 +8,17 @@ read -p "Enter your GitHub personal access token: " GH_TOKEN
 read -p "Enter your GitHub repo name: " GH_REPO
 read -p "Enter your custom branch name (NOT main): " GH_BRANCH
 
-# Exit if 'main' is chosen (your signature rule)
-if [[ "$GH_BRANCH" == "main" ]]; then
-  echo "❌ 'main' is not allowed as branch name. Exiting."
+# Validate branch name (no 'main', no invalid chars)
+if [[ "$GH_BRANCH" == "main" || ! "$GH_BRANCH" =~ ^[a-zA-Z0-9._/-]+$ ]]; then
+  echo "❌ Invalid branch name: '$GH_BRANCH'. Use only letters, numbers, dashes, underscores, or slashes."
   exit 1
 fi
 
-# Create repo directory if it doesn't exist
-mkdir -p $GH_REPO
-cd $GH_REPO || exit 1
+# Create repo directory and cd in
+mkdir -p "$GH_REPO"
+cd "$GH_REPO" || exit 1
 
-# Create origins.py
+# Write origins.py
 cat << 'EOF' > origins.py
 import os
 
@@ -115,11 +115,11 @@ files = {
 }""",
 
     "umubonaboneza/js/main.js": """const glyphs = {
-  'glyph-origin': \`🌊 Sea (Origins)...\`,
-  'glyph-rules': \`❤️ Love (Rules)...\`,
-  'glyph-recursion': \`🔁 Recursion (Games)...\`,
-  'glyph-splicing': \`🎭 Theater (Splicing)...\`,
-  'glyph-illusion': \`🤖 Illusion (Broadcast)...\`
+  'glyph-origin': '🌊 Sea (Origins)...',
+  'glyph-rules': '❤️ Love (Rules)...',
+  'glyph-recursion': '🔁 Recursion (Games)...',
+  'glyph-splicing': '🎭 Theater (Splicing)...',
+  'glyph-illusion': '🤖 Illusion (Broadcast)...'
 };
 document.querySelectorAll('.glyph').forEach(glyph => {
   glyph.innerText = glyph.getAttribute('data-glyph');
@@ -150,17 +150,18 @@ for path, content in files.items():
 print("✅ Project scaffolded from origins.py")
 EOF
 
-# Run the Python script to generate the project
+# Run the Python script
 echo "🔁 Running origins.py..."
 python3 origins.py
 
-# Initialize git and push to GitHub
+# Git init and commit
 echo "🔧 Initializing git..."
 git init
 git checkout -b "$GH_BRANCH"
 git add .
 git commit -m "🌱 Initial commit from origins.py"
 
+# Remote and push
 echo "🚀 Pushing to GitHub branch $GH_BRANCH..."
 git remote add origin https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO}.git
 git push -u origin "$GH_BRANCH"
