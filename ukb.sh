@@ -20,7 +20,7 @@ cd "$GH_REPO" || exit 1
 
 # Write origins.py
 cat << 'EOF' > origins.py
-import os
+import os     
 
 dirs = [
     "fire/css",
