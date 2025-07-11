@@ -24,9 +24,9 @@ import os
 
 # Directory tree
 dirs = [
-    "umubonaboneza/css",
-    "umubonaboneza/js",
-    "umubonaboneza/md"
+    "fire/css",
+    "fire/js",
+    "fire/md"
 ]
 
 files = {
@@ -36,7 +36,7 @@ files = {
   <meta charset='UTF-8' />
   <meta name='viewport' content='width=device-width, initial-scale=1.0' />
   <title>Coen Recursion Engine</title>
-  <link rel='stylesheet' href='umubonaboneza/css/main.css' />
+  <link rel='stylesheet' href='fire/css/main.css' />
 </head>
 <body>
   <div class='cosmos'>
@@ -49,11 +49,11 @@ files = {
     </div>
     <div id='details' class='hidden'></div>
   </div>
-  <script src='umubonaboneza/js/main.js'></script>
+  <script src='fire/js/main.js'></script>
 </body>
 </html>""",
 
-    "umubonaboneza/css/main.css": """body {
+    "fire/css/main.css": """body {
   margin: 0;
   padding: 0;
   background: radial-gradient(#000010, #000000);
@@ -114,7 +114,7 @@ files = {
   display: block;
 }""",
 
-    "umubonaboneza/js/main.js": """const glyphs = {
+    "fire/js/main.js": """const glyphs = {
   'glyph-origin': '🌊 Sea (Origins)...',
   'glyph-rules': '❤️ Love (Rules)...',
   'glyph-recursion': '🔁 Recursion (Games)...',
@@ -131,7 +131,7 @@ document.querySelectorAll('.glyph').forEach(glyph => {
   });
 });""",
 
-    "umubonaboneza/md/README.md": """# Coen Recursion Engine  
+    "fire/md/README.md": """# Coen Recursion Engine  
 A mythic UI simulator grounded in five glyphs: 🌊 ❤️ 🔁 🎭 🤖  
 Each glyph opens a narrative based in recursive logic from Coen Brothers' filmography.  
 This project renders a cosmic pentagon, alive with animation and responsive to user action.
