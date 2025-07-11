@@ -21,8 +21,8 @@ cat << 'EOF' > origins.py
 import os     
 
 dirs = [
-    "fire/css",
-    "fire/js",
+    "fire/static/css",
+    "fire/static/js",
     "fire/md",
     "fire/myenv"
 ]
@@ -34,7 +34,7 @@ files = {
   <meta charset='UTF-8' />
   <meta name='viewport' content='width=device-width, initial-scale=1.0' />
   <title>Coen Recursion Engine</title>
-  <link rel='stylesheet' href='fire/css/main.css' />
+  <link rel='stylesheet' href='/fire/static/css/main.css' />
 </head>
 <body>
   <div class='cosmos'>
@@ -47,11 +47,11 @@ files = {
     </div>
     <div id='details' class='hidden'></div>
   </div>
-  <script src='fire/js/main.js'></script>
+  <script src='/fire/static/js/main.js'></script>
 </body>
 </html>""",
 
-    "fire/css/main.css": """body {
+    "fire/static/css/main.css": """body {
   margin: 0;
   padding: 0;
   background: radial-gradient(#000010, #000000);
@@ -62,7 +62,7 @@ files = {
 /* ... same as before ... */
 """,
 
-    "fire/js/main.js": """const glyphs = {
+    "fire/static/js/main.js": """const glyphs = {
   'glyph-origin': '🌊 Sea (Origins)...',
   'glyph-rules': '❤️ Love (Rules)...',
   'glyph-recursion': '🔁 Recursion (Games)...',
@@ -84,22 +84,19 @@ A mythic UI simulator grounded in five glyphs: 🌊 ❤️ 🔁 🎭 🤖
 """,
 
     "app.py": """from flask import Flask, send_from_directory
-app = Flask(__name__, static_folder='.')
+
+app = Flask(__name__, static_folder='fire/static')
 
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
 
-@app.route('/fire/<path:filename>')
-def fire_static(filename):
-    return send_from_directory('fire', filename)
-
-@app.route('/<path:filename>')
-def serve_static(path):
-    return send_from_directory('.', path)
+@app.route('/fire/static/<path:filename>')
+def static_files(filename):
+    return send_from_directory('fire/static', filename)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
 """,
 
     "requirements.txt": "Flask==3.0.0\n"
@@ -125,17 +122,17 @@ source fire/myenv/bin/activate
 echo "📦 Installing dependencies..."
 pip install -r requirements.txt
 
-echo "🚀 Launching Flask app at http://127.0.0.1:5000 ..."
+echo "🚀 Launching Flask app at http://0.0.0.0:5000 ..."
 nohup python3 app.py > flask.log 2>&1 &
 
 echo "🔧 Initializing Git..."
 git init
-git checkout -b "$GH_BRANCH"
+git checkout -b "$GH_BRANCH" || { echo "❌ Failed to create branch"; exit 1; }
 git add .
-git commit -m "🌱 Initial commit from origins.py with virtual env + Flask"
+git commit -m "🌱 Initial commit from origins.py with virtual env + Flask" || { echo "❌ Git commit failed"; exit 1; }
 
 echo "🔗 Connecting to GitHub..."
 git remote add origin https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO}.git
-git push -u origin "$GH_BRANCH"
+git push -u origin "$GH_BRANCH" || { echo "❌ Git push failed"; exit 1; }
 
-echo "✅ Done! Flask app is running. View: http://127.0.0.1:5000"
+echo "✅ Done! Flask app is running. View: http://0.0.0.0:5000"
