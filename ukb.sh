@@ -1,24 +1,22 @@
 #!/bin/bash
 
+# ukb.sh - Ukubona Recursive Setup Engine
+
 echo "🌐 Ukubona Recursive Setup Engine"
 
-# Prompt for GitHub credentials
 read -p "Enter your GitHub username: " GH_USER
-read -p "Enter your GitHub personal access token: " GH_TOKEN          
+read -p "Enter your GitHub personal access token: " GH_TOKEN
 read -p "Enter your GitHub repo name: " GH_REPO
 read -p "Enter your custom branch name (NOT main): " GH_BRANCH
 
-# Validate branch name
 if [[ "$GH_BRANCH" == "main" || ! "$GH_BRANCH" =~ ^[a-zA-Z0-9._/-]+$ ]]; then
   echo "❌ Invalid branch name: '$GH_BRANCH'. Use only letters, numbers, dashes, underscores, or slashes."
   exit 1
 fi
 
-# Create repo directory and cd in
 mkdir -p "$GH_REPO"
 cd "$GH_REPO" || exit 1
 
-# Write origins.py
 cat << 'EOF' > origins.py
 import os     
 
@@ -92,7 +90,11 @@ app = Flask(__name__, static_folder='.')
 def index():
     return send_from_directory('.', 'index.html')
 
-@app.route('/<path:path>')
+@app.route('/fire/<path:filename>')
+def fire_static(filename):
+    return send_from_directory('fire', filename)
+
+@app.route('/<path:filename>')
 def serve_static(path):
     return send_from_directory('.', path)
 
@@ -113,24 +115,19 @@ for path, content in files.items():
 print("✅ Project scaffolded from origins.py")
 EOF
 
-# Run origins.py
 echo "🔁 Running origins.py..."
 python3 origins.py
 
-# Setup Python venv in fire/myenv
-echo "🐍 Creating and activating virtual environment in fire/myenv..."
+echo "🐍 Creating virtual environment in fire/myenv..."
 python3 -m venv fire/myenv
 source fire/myenv/bin/activate
 
-# Install Flask
 echo "📦 Installing dependencies..."
 pip install -r requirements.txt
 
-# Run Flask app in background
 echo "🚀 Launching Flask app at http://127.0.0.1:5000 ..."
 nohup python3 app.py > flask.log 2>&1 &
 
-# Git init and push
 echo "🔧 Initializing Git..."
 git init
 git checkout -b "$GH_BRANCH"
