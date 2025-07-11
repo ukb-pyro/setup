@@ -6,10 +6,17 @@ echo "🌐 Ukubona Recursive Setup Engine"
 read -p "Enter your GitHub username: " GH_USER
 read -p "Enter your GitHub personal access token: " GH_TOKEN
 read -p "Enter your GitHub repo name: " GH_REPO
+read -p "Enter your custom branch name (NOT main): " GH_BRANCH
+
+# Exit if 'main' is chosen (your signature rule)
+if [[ "$GH_BRANCH" == "main" ]]; then
+  echo "❌ 'main' is not allowed as branch name. Exiting."
+  exit 1
+fi
 
 # Create repo directory if it doesn't exist
 mkdir -p $GH_REPO
-cd $GH_REPO
+cd $GH_REPO || exit 1
 
 # Create origins.py
 cat << 'EOF' > origins.py
@@ -17,9 +24,9 @@ import os
 
 # Directory tree
 dirs = [
-    "llc/css",
-    "llc/js",
-    "llc/md"
+    "umubonaboneza/css",
+    "umubonaboneza/js",
+    "umubonaboneza/md"
 ]
 
 files = {
@@ -29,7 +36,7 @@ files = {
   <meta charset='UTF-8' />
   <meta name='viewport' content='width=device-width, initial-scale=1.0' />
   <title>Coen Recursion Engine</title>
-  <link rel='stylesheet' href='llc/css/main.css' />
+  <link rel='stylesheet' href='umubonaboneza/css/main.css' />
 </head>
 <body>
   <div class='cosmos'>
@@ -42,11 +49,11 @@ files = {
     </div>
     <div id='details' class='hidden'></div>
   </div>
-  <script src='llc/js/main.js'></script>
+  <script src='umubonaboneza/js/main.js'></script>
 </body>
 </html>""",
 
-    "llc/css/main.css": """body {
+    "umubonaboneza/css/main.css": """body {
   margin: 0;
   padding: 0;
   background: radial-gradient(#000010, #000000);
@@ -107,7 +114,7 @@ files = {
   display: block;
 }""",
 
-    "llc/js/main.js": """const glyphs = {
+    "umubonaboneza/js/main.js": """const glyphs = {
   'glyph-origin': \`🌊 Sea (Origins)...\`,
   'glyph-rules': \`❤️ Love (Rules)...\`,
   'glyph-recursion': \`🔁 Recursion (Games)...\`,
@@ -124,7 +131,7 @@ document.querySelectorAll('.glyph').forEach(glyph => {
   });
 });""",
 
-    "llc/md/README.md": """# Coen Recursion Engine  
+    "umubonaboneza/md/README.md": """# Coen Recursion Engine  
 A mythic UI simulator grounded in five glyphs: 🌊 ❤️ 🔁 🎭 🤖  
 Each glyph opens a narrative based in recursive logic from Coen Brothers' filmography.  
 This project renders a cosmic pentagon, alive with animation and responsive to user action.
@@ -150,12 +157,12 @@ python3 origins.py
 # Initialize git and push to GitHub
 echo "🔧 Initializing git..."
 git init
+git checkout -b "$GH_BRANCH"
 git add .
 git commit -m "🌱 Initial commit from origins.py"
-git branch -M main
 
-echo "🚀 Pushing to GitHub..."
+echo "🚀 Pushing to GitHub branch $GH_BRANCH..."
 git remote add origin https://${GH_USER}:${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO}.git
-git push -u origin main
+git push -u origin "$GH_BRANCH"
 
-echo "✅ All done. Your recursion engine is live."
+echo "✅ All done. Your recursion engine is live on branch '$GH_BRANCH'."
